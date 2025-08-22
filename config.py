@@ -16,6 +16,10 @@ class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'arcade-fantasy-sports-secret-key'
     DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
     
+    # ESPN API Authentication
+    ESPN_S2 = os.environ.get('ESPN_S2')
+    ESPN_SWID = os.environ.get('ESPN_SWID')
+    
     # ESPN API Configuration
     ESPN_LEAGUE_ID = os.environ.get('ESPN_LEAGUE_ID')
     ESPN_YEAR = int(os.environ.get('ESPN_YEAR', '2024'))
@@ -37,20 +41,27 @@ class Config:
     }
     
     # Fantasy Leagues Configuration
-    FANTASY_LEAGUES = [
-        {
-            'name': 'NFL Fantasy',
-            'sport': 'football',
-            'league_id': None,  # Set your league ID here
-            'year': 2024
-        },
-        {
-            'name': 'NBA Fantasy',
-            'sport': 'basketball',
-            'league_id': None,  # Set your league ID here
-            'year': 2024
-        }
-    ]
+    # Format: "league_id:sport:year:display_name"
+    # Example: "123456789:football:2024:My NFL League"
+    FANTASY_LEAGUES_RAW = os.environ.get('FANTASY_LEAGUES', '')
+    
+    @classmethod
+    def get_fantasy_leagues(cls):
+        """Parse fantasy leagues from environment variable"""
+        leagues = []
+        if cls.FANTASY_LEAGUES_RAW:
+            for league_str in cls.FANTASY_LEAGUES_RAW.split(','):
+                league_str = league_str.strip()
+                if ':' in league_str:
+                    parts = league_str.split(':')
+                    if len(parts) >= 4:
+                        leagues.append({
+                            'league_id': int(parts[0]),
+                            'sport': parts[1],
+                            'year': int(parts[2]),
+                            'name': parts[3]
+                        })
+        return leagues
     
     # Visual Configuration
     COLORS = {

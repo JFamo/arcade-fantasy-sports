@@ -15,6 +15,7 @@ from datetime import datetime
 import time
 import threading
 from dotenv import load_dotenv
+from config import Config
 
 # Load environment variables
 load_dotenv()
@@ -143,15 +144,89 @@ def get_sample_sports_data():
         ]
     }
 
+def get_real_fantasy_data():
+    """Get real fantasy data from ESPN API if configured"""
+    try:
+        # Get ESPN authentication credentials
+        espn_s2 = Config.ESPN_S2
+        swid = Config.ESPN_SWID
+        
+        # Get configured leagues
+        leagues = Config.get_fantasy_leagues()
+        
+        if not leagues:
+            print("No fantasy leagues configured")
+            return None
+        
+        all_fantasy_teams = []
+        
+        for league_config in leagues:
+            try:
+                league_id = league_config['league_id']
+                sport = league_config['sport']
+                year = league_config['year']
+                league_name = league_config['name']
+                
+                print(f"Fetching data for {league_name} (ID: {league_id}, Sport: {sport}, Year: {year})")
+                
+                # Get league data based on sport with authentication
+                if sport == 'football':
+                    league = League(league_id=league_id, year=year, espn_s2=espn_s2, swid=swid)
+                elif sport == 'basketball':
+                    league = BasketballLeague(league_id=league_id, year=year, espn_s2=espn_s2, swid=swid)
+                elif sport == 'baseball':
+                    league = BaseballLeague(league_id=league_id, year=year, espn_s2=espn_s2, swid=swid)
+                else:
+                    print(f"Unknown sport: {sport}")
+                    continue
+                
+                # Convert league data to our format
+                for team in league.teams:
+                    # Find current opponent (simplified - you'd need to get actual matchup data)
+                    opponent = None
+                    for other_team in league.teams:
+                        if other_team != team:
+                            opponent = other_team
+                            break
+                    
+                    all_fantasy_teams.append({
+                        "name": team.team_name,
+                        "owner": team.owner,
+                        "points": float(team.points_for),
+                        "opponent": opponent.team_name if opponent else "TBD",
+                        "opponent_points": float(opponent.points_for) if opponent else 0.0,
+                        "status": "Winning" if team.points_for > (opponent.points_for if opponent else 0) else "Losing",
+                        "league": league_name
+                    })
+                
+                print(f"✅ Successfully loaded {len(league.teams)} teams from {league_name}")
+                
+            except Exception as e:
+                print(f"❌ Error loading league {league_config.get('name', 'Unknown')}: {e}")
+                continue
+        
+        return all_fantasy_teams
+        
+    except Exception as e:
+        print(f"Error getting real fantasy data: {e}")
+        return None
+
 def update_sports_data():
     """Update sports data periodically"""
     global sports_data
     
-    # For now, use sample data
-    # In production, you would fetch real data from ESPN API
+    # Get base sample data
     sports_data = get_sample_sports_data()
     
-    # Simulate some data changes
+    # Try to get real fantasy data
+    real_fantasy_data = get_real_fantasy_data()
+    if real_fantasy_data:
+        sports_data["fantasy_teams"] = real_fantasy_data
+        print("✅ Using real ESPN fantasy data")
+    else:
+        print("📊 Using sample fantasy data")
+    
+    # Simulate some data changes for sports scores
     import random
     if sports_data["sports"]["football"]["games"]:
         game = sports_data["sports"]["football"]["games"][1]
@@ -161,7 +236,8 @@ def update_sports_data():
                 game["home_score"] += random.randint(0, 3)
                 game["away_score"] += random.randint(0, 3)
     
-    if sports_data["fantasy_teams"]:
+    # Only simulate changes for fantasy data if using sample data
+    if not real_fantasy_data and sports_data["fantasy_teams"]:
         for team in sports_data["fantasy_teams"]:
             if random.random() < 0.2:  # 20% chance to update
                 team["points"] += random.uniform(0.1, 2.0)
