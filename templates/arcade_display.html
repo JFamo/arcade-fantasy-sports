@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🎮 Retro Arcade Fantasy Sports</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap");
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Orbitron", monospace;
+        background: linear-gradient(
+          135deg,
+          #0a0a0a 0%,
+          #1a1a2e 50%,
+          #16213e 100%
+        );
+        color: #00ff00;
+        overflow: hidden;
+        height: 100vh;
+      }
+
+      /* CRT Monitor Effect */
+      body::before {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: repeating-linear-gradient(
+          0deg,
+          rgba(0, 0, 0, 0.15),
+          rgba(0, 0, 0, 0.15) 1px,
+          transparent 1px,
+          transparent 2px
+        );
+        pointer-events: none;
+        z-index: 1000;
+      }
+
+      /* Scanlines */
+      body::after {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(transparent 50%, rgba(0, 0, 0, 0.5) 50%);
+        background-size: 100% 4px;
+        pointer-events: none;
+        z-index: 1001;
+      }
+
+      .header {
+        text-align: center;
+        padding: 20px;
+        background: linear-gradient(
+          90deg,
+          #ff0000,
+          #ff6600,
+          #ffff00,
+          #00ff00,
+          #0066ff,
+          #6600ff
+        );
+        background-size: 600% 100%;
+        animation: rainbow 30s ease-in-out infinite;
+        border-bottom: 3px solid #00ff00;
+        box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
+      }
+
+      @keyframes rainbow {
+        0%,
+        100% {
+          background-position: 0% 50%;
+        }
+        50% {
+          background-position: 100% 50%;
+        }
+      }
+
+      .header h1 {
+        font-size: 3rem;
+        font-weight: 900;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+        margin: 0;
+      }
+
+      .header p {
+        font-size: 1.2rem;
+        margin-top: 10px;
+        opacity: 0.8;
+      }
+
+      .main-container {
+        display: flex;
+        height: calc(100vh - 120px);
+        padding: 20px;
+        gap: 20px;
+      }
+
+      .sports-section {
+        flex: 1;
+        background: rgba(0, 0, 0, 0.7);
+        border: 2px solid #00ff00;
+        border-radius: 10px;
+        padding: 20px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .section-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        text-align: center;
+        margin-bottom: 20px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        text-shadow: 0 0 10px #00ff00;
+      }
+
+      .scrolling-container {
+        height: calc(100% - 60px);
+        overflow: hidden;
+        position: relative;
+      }
+
+      .scrolling-content {
+        animation: scroll-up 60s linear infinite;
+      }
+
+      @keyframes scroll-up {
+        0% {
+          transform: translateY(100%);
+        }
+        100% {
+          transform: translateY(-100%);
+        }
+      }
+
+      .game-card {
+        background: rgba(0, 20, 0, 0.8);
+        border: 1px solid #00ff00;
+        border-radius: 5px;
+        padding: 15px;
+        margin-bottom: 15px;
+        box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+        transition: all 0.3s ease;
+      }
+
+      .game-card:hover {
+        transform: scale(1.02);
+        box-shadow: 0 0 20px rgba(0, 255, 0, 0.6);
+      }
+
+      .game-card.live {
+        border-color: #ff0000;
+        box-shadow: 0 0 15px rgba(255, 0, 0, 0.5);
+        animation: pulse 2s ease-in-out infinite;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.7;
+        }
+      }
+
+      .teams {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+
+      .team {
+        text-align: center;
+        flex: 1;
+      }
+
+      .team-name {
+        font-size: 1rem;
+        font-weight: 700;
+        margin-bottom: 5px;
+      }
+
+      .score {
+        font-size: 2rem;
+        font-weight: 900;
+        color: #ffff00;
+        text-shadow: 0 0 10px #ffff00;
+      }
+
+      .vs {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #ff6600;
+        margin: 0 20px;
+      }
+
+      .game-info {
+        text-align: center;
+        font-size: 0.9rem;
+        opacity: 0.8;
+        margin-top: 10px;
+      }
+
+      .status {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 3px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+
+      .status.live {
+        background: #ff0000;
+        color: white;
+        animation: blink 1s ease-in-out infinite;
+      }
+
+      .status.final {
+        background: #666;
+        color: white;
+      }
+
+      @keyframes blink {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+      }
+
+      .fantasy-section {
+        flex: 1;
+        background: rgba(0, 0, 0, 0.7);
+        border: 2px solid #0066ff;
+        border-radius: 10px;
+        padding: 20px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .fantasy-card {
+        background: rgba(0, 0, 20, 0.8);
+        border: 1px solid #0066ff;
+        border-radius: 5px;
+        padding: 15px;
+        margin-bottom: 15px;
+        box-shadow: 0 0 10px rgba(0, 102, 255, 0.3);
+        transition: all 0.3s ease;
+      }
+
+      .fantasy-card:hover {
+        transform: scale(1.02);
+        box-shadow: 0 0 20px rgba(0, 102, 255, 0.6);
+      }
+
+      .fantasy-card.winning {
+        border-color: #00ff00;
+        box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+      }
+
+      .fantasy-card.losing {
+        border-color: #ff0000;
+        box-shadow: 0 0 15px rgba(255, 0, 0, 0.5);
+      }
+
+      .team-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+
+      .team-name-fantasy {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #ffff00;
+      }
+
+      .owner {
+        font-size: 0.8rem;
+        opacity: 0.7;
+      }
+
+      .league {
+        font-size: 0.7rem;
+        color: #ff6600;
+        text-transform: uppercase;
+      }
+
+      .points-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+
+      .points {
+        font-size: 1.5rem;
+        font-weight: 900;
+        color: #00ff00;
+      }
+
+      .opponent-info {
+        text-align: center;
+        font-size: 0.8rem;
+        opacity: 0.8;
+      }
+
+      .status-fantasy {
+        text-align: center;
+        font-size: 0.9rem;
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+
+      .status-fantasy.winning {
+        color: #00ff00;
+      }
+
+      .status-fantasy.losing {
+        color: #ff0000;
+      }
+
+      .timestamp {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        font-size: 0.8rem;
+        opacity: 0.6;
+        z-index: 1002;
+      }
+
+      .loading {
+        text-align: center;
+        font-size: 1.2rem;
+        padding: 50px;
+        animation: pulse 2s ease-in-out infinite;
+      }
+
+      /* Responsive Design */
+      @media (max-width: 768px) {
+        .main-container {
+          flex-direction: column;
+          height: auto;
+        }
+
+        .header h1 {
+          font-size: 2rem;
+        }
+
+        .sports-section,
+        .fantasy-section {
+          margin-bottom: 20px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1>🎮 ARCADE FANTASY SPORTS 🎮</h1>
+      <p>LIVE SCORES & FANTASY PERFORMANCES</p>
+    </div>
+
+    <div class="main-container">
+      <div class="sports-section">
+        <div class="section-title">🏈 Live Sports Scores</div>
+        <div class="scrolling-container">
+          <div class="scrolling-content" id="sports-content">
+            <div class="loading">Loading sports data...</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="fantasy-section">
+        <div class="section-title">⭐ Fantasy Teams</div>
+        <div class="scrolling-container">
+          <div class="scrolling-content" id="fantasy-content">
+            <div class="loading">Loading fantasy data...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="timestamp" id="timestamp"></div>
+
+    <script>
+      class ArcadeSportsDisplay {
+        constructor() {
+          this.sportsContent = document.getElementById("sports-content");
+          this.fantasyContent = document.getElementById("fantasy-content");
+          this.timestampElement = document.getElementById("timestamp");
+          this.updateInterval = 30000; // 30 seconds
+
+          this.init();
+        }
+
+        init() {
+          this.updateDisplay();
+          setInterval(() => this.updateDisplay(), this.updateInterval);
+          this.updateTimestamp();
+          setInterval(() => this.updateTimestamp(), 1000);
+        }
+
+        async updateDisplay() {
+          try {
+            const response = await fetch("/api/sports-data");
+            const data = await response.json();
+
+            this.renderSportsData(data.sports);
+            this.renderFantasyData(data.fantasy_teams);
+          } catch (error) {
+            console.error("Error fetching data:", error);
+            this.showError();
+          }
+        }
+
+        renderSportsData(sports) {
+          let html = "";
+
+          // Football games
+          if (sports.football && sports.football.games.length > 0) {
+            html +=
+              '<div style="margin-bottom: 20px;"><h3 style="color: #ff6600; text-align: center; margin-bottom: 15px;">🏈 NFL</h3>';
+            sports.football.games.forEach((game) => {
+              html += this.createGameCard(game);
+            });
+            html += "</div>";
+          }
+
+          // Basketball games
+          if (sports.basketball && sports.basketball.games.length > 0) {
+            html +=
+              '<div style="margin-bottom: 20px;"><h3 style="color: #ff6600; text-align: center; margin-bottom: 15px;">🏀 NBA</h3>';
+            sports.basketball.games.forEach((game) => {
+              html += this.createGameCard(game);
+            });
+            html += "</div>";
+          }
+
+          // Baseball games
+          if (sports.baseball && sports.baseball.games.length > 0) {
+            html +=
+              '<div style="margin-bottom: 20px;"><h3 style="color: #ff6600; text-align: center; margin-bottom: 15px;">⚾ MLB</h3>';
+            sports.baseball.games.forEach((game) => {
+              html += this.createGameCard(game);
+            });
+            html += "</div>";
+          }
+
+          if (html === "") {
+            html = '<div class="loading">No live games currently</div>';
+          }
+
+          this.sportsContent.innerHTML = html;
+        }
+
+        createGameCard(game) {
+          const isLive = game.status === "Live";
+          const cardClass = isLive ? "game-card live" : "game-card";
+          const statusClass = isLive ? "status live" : "status final";
+
+          return `
+                    <div class="${cardClass}">
+                        <div class="teams">
+                            <div class="team">
+                                <div class="team-name">${game.away_team}</div>
+                                <div class="score">${game.away_score}</div>
+                            </div>
+                            <div class="vs">VS</div>
+                            <div class="team">
+                                <div class="team-name">${game.home_team}</div>
+                                <div class="score">${game.home_score}</div>
+                            </div>
+                        </div>
+                        <div class="game-info">
+                            <span class="${statusClass}">${game.status}</span>
+                            ${game.quarter ? ` • ${game.quarter}` : ""}
+                            ${game.inning ? ` • Inning ${game.inning}` : ""}
+                            ${
+                              game.time_remaining
+                                ? ` • ${game.time_remaining}`
+                                : ""
+                            }
+                        </div>
+                    </div>
+                `;
+        }
+
+        renderFantasyData(fantasyTeams) {
+          if (!fantasyTeams || fantasyTeams.length === 0) {
+            this.fantasyContent.innerHTML =
+              '<div class="loading">No fantasy data available</div>';
+            return;
+          }
+
+          let html = "";
+          fantasyTeams.forEach((team) => {
+            const cardClass = `fantasy-card ${team.status.toLowerCase()}`;
+            const statusClass = `status-fantasy ${team.status.toLowerCase()}`;
+
+            html += `
+                        <div class="${cardClass}">
+                            <div class="team-header">
+                                <div class="team-name-fantasy">${
+                                  team.name
+                                }</div>
+                                <div class="league">${team.league}</div>
+                            </div>
+                            <div class="owner">Owner: ${team.owner}</div>
+                            <div class="points-container">
+                                <div class="points">${team.points.toFixed(
+                                  1
+                                )} pts</div>
+                                <div style="font-size: 1rem; color: #666;">vs</div>
+                                <div class="points">${team.opponent_points.toFixed(
+                                  1
+                                )} pts</div>
+                            </div>
+                            <div class="opponent-info">vs ${team.opponent}</div>
+                            <div class="${statusClass}">${team.status}</div>
+                        </div>
+                    `;
+          });
+
+          this.fantasyContent.innerHTML = html;
+        }
+
+        updateTimestamp() {
+          const now = new Date();
+          this.timestampElement.textContent = now.toLocaleString();
+        }
+
+        showError() {
+          this.sportsContent.innerHTML =
+            '<div class="loading">Error loading data</div>';
+          this.fantasyContent.innerHTML =
+            '<div class="loading">Error loading data</div>';
+        }
+      }
+
+      // Initialize the display when the page loads
+      document.addEventListener("DOMContentLoaded", () => {
+        new ArcadeSportsDisplay();
+      });
+    </script>
+  </body>
+</html>

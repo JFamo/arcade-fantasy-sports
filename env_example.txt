@@ -1,0 +1,22 @@
+# Arcade Fantasy Sports Display Configuration
+# Copy this file to .env and update with your values
+
+# Flask Configuration
+SECRET_KEY=your-secret-key-here
+DEBUG=True
+
+# ESPN API Configuration
+ESPN_LEAGUE_ID=123456789
+ESPN_YEAR=2024
+ESPN_SPORT=football
+
+# Display Configuration
+UPDATE_INTERVAL=30
+SCROLL_SPEED=30
+
+# Sample Data Configuration
+ENABLE_SAMPLE_DATA=True
+SAMPLE_DATA_UPDATE_CHANCE=0.3
+
+# Fantasy Leagues (comma-separated league IDs)
+FANTASY_LEAGUE_IDS=123456789,987654321
