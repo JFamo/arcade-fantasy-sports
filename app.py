@@ -22,6 +22,10 @@ load_dotenv()
 
 app = Flask(__name__)
 
+
+# App version
+VERSION = "1.0.1"
+
 # Global data storage
 sports_data = {
     "timestamp": datetime.now().isoformat(),
@@ -283,6 +287,26 @@ def get_fantasy_league_data(league_id, year):
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+# ============================================
+# Health & Version endpoints (added by Glint)
+# ============================================
+
+@app.route('/health')
+def health_check():
+    """Health check endpoint for monitoring"""
+    return jsonify({
+        "status": "healthy",
+        "version": VERSION,
+        "timestamp": datetime.now().isoformat(),
+        "data_age_seconds": (datetime.now() - datetime.fromisoformat(sports_data["timestamp"])).total_seconds() if sports_data.get("timestamp") else None
+    })
+
+@app.route('/api/version')
+def get_version():
+    """Get application version"""
+    return jsonify({"version": VERSION, "name": "Arcade Fantasy Sports"})
+
 
 if __name__ == '__main__':
     # Start background data update thread
